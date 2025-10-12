@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Miner - Setup WiFi</title>
+    <link rel="stylesheet" href="./css/style.css">
+    
+</head>
+<body>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📡 CONFIGURAÇÃO WIFI</h1>
+            <p>Monitor Miner v3.0 - Setup Inicial</p>
+        </div>
+
+        <div class="content">
+            <div class="scan-section">
+                <button class="btn" id="scanBtn">🔍 Buscar Redes WiFi</button>
+                <p id="debug" style="margin-top: 10px; font-size: 0.9em; color: #666;">Carregando...</p>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Procurando redes WiFi disponíveis...</p>
+            </div>
+
+            <div class="network-dropdown-section" id="networkDropdownSection" style="display: none;">
+                <label for="networkSelect" class="dropdown-label">📡 Selecionar Rede WiFi:</label>
+                <select id="networkSelect" class="network-dropdown">
+                    <option value="">Selecione uma rede...</option>
+                </select>
+            </div>
+
+            <div class="networks" id="networks"></div>
+
+            <div class="form-section" id="formSection">
+                <h3 style="margin-bottom: 20px; text-align: center;">🔑 CONECTAR À REDE</h3>
+                <div class="form-group">
+                    <label for="selectedSsid">📡 Rede Selecionada:</label>
+                    <input type="text" id="selectedSsid" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="password">🔒 Senha:</label>
+                    <input type="password" id="password" placeholder="Digite a senha da rede">
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-cancel" id="cancelBtn">❌ Cancelar</button>
+                    <button class="btn btn-success" id="connectBtn">✅ Conectar</button>
+                </div>
+            </div>
+
+            <div class="message" id="message"></div>
+        </div>
+    </div>
+    <script src="./js/setup_wifi.js"></script>
+    <!-- VERIFICAÇÃO SIMPLES -->
+    <script>
+        console.log('[INLINE] Verificador simples iniciando...');
+        
+        setTimeout(() => {
+            const debug = document.getElementById('debug');
+            if (debug) {
+                if (typeof scanNetworks === 'function') {
+                    debug.textContent = 'JavaScript OK! Clique no botao.';
+                    debug.style.color = 'green';
+                    console.log('[INLINE] setup_wifi.js carregado!');
+                } else {
+                    debug.textContent = 'Carregando JavaScript...';
+                    debug.style.color = 'orange';
+                    console.log('[INLINE] setup_wifi.js ainda carregando...');
+                }
+            }
+        }, 100);
+        
+        console.log('[INLINE] Verificador simples configurado!');
+    </script>    
+</body>
+<!-- BUFFER ANTI-TRUNCAMENTO: Sistema sempre corta os últimos 30 caracteres -->
+<!-- 1234567890123456789012345678901234567890 -->
+</html>

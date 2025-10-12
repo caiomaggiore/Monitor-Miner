@@ -15,9 +15,9 @@ ap = network.WLAN(network.AP_IF)
 sta = network.WLAN(network.STA_IF)
 
 if ap.active():
-    # Modo AP - Carregar setup
-    print("[MAIN] Modo AP detectado → Carregando setup.py")
-    import setup
+    # Modo AP - Carregar setup_wifi
+    print("[MAIN] Modo AP detectado → Carregando setup_wifi.py")
+    import setup_wifi
     
 elif sta.active() and sta.isconnected():
     # Modo STA - Carregar dashboard

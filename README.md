@@ -1,43 +1,47 @@
-# Monitor Miner ESP32 v3.0
+# Monitor Miner ESP32 v3.2
 
-Sistema de monitoramento inteligente para sala de mineração de Bitcoin.
+Sistema de monitoramento inteligente para sala de mineração de Bitcoin com interface unificada e layout profissional.
 
-## 🏗️ Arquitetura v3.0 - Servidores Síncronos
+## 🎨 Arquitetura v3.2 - Layout Unificado
 
-### ⚡ Descoberta Importante
+### ✨ Sistema de Interface Unificado
 
-**Problema**: Microdot + asyncio causa **CRASH FATAL** no ESP32
-- Modo AP: Erro -203 (todas portas)
-- Modo STA: abort() crash
-  
-**Solução**: Servidores HTTP síncronos (socket puro) em ambos modos
+**Características:**
+- **CSS compartilhado** entre todas as páginas
+- **JavaScript modular** e reutilizável
+- **Tema dark** com cores vibrantes apenas em detalhes
+- **Layout responsivo** e profissional
+- **Estrutura organizada** para crescimento
 
-```
-boot.py (70 linhas)
-   ├─ WiFi configurado? → Conecta STA → import main.py (Async)
-   └─ Não configurado? → Ativa AP → import setup.py (Sync)
-```
-
-### 📂 Estrutura
+### 📂 Estrutura Final
 
 ```
 esp32/
 ├── boot.py              # Boot mínimo - verifica e direciona
 ├── main.py              # Roteador - decide setup vs dashboard
-├── setup.py             # Modo AP - Servidor HTTP síncrono
+├── setup_wifi.py        # Modo AP - Servidor HTTP síncrono
 ├── dashboard.py         # Modo STA - Servidor HTTP síncrono
-├── microdot.py          # (não usado - mantido para referência)
 │
-├── web/
-│   ├── setup.html       # Site Survey (standalone, sem CDN)
-│   ├── setup.css        # (opcional - setup.html tem inline)
-│   ├── setup.js         # (opcional - setup.html tem inline)
-│   └── index.html       # Dashboard
+├── web/                 # Interface Web Organizada
+│   ├── index.html       # Dashboard (HTML limpo)
+│   ├── setup_wifi.html  # Setup WiFi (HTML limpo)
+│   ├── css/             # CSS Compartilhado
+│   │   └── style.css    # Tema dark unificado (598 linhas)
+│   └── js/              # JavaScript Modular
+│       ├── dashboard.js # Lógica do dashboard
+│       └── setup_wifi.js # Lógica do setup
 │
-└── data/
-    ├── config.json      # Configuração WiFi salva
+└── data/                # Dados do Sistema
+    ├── config.json      # Configuração WiFi
     └── sensors.json     # Dados dos sensores
 ```
+
+### 🎯 Padrão de Cores
+
+- **`--accent-blue`**: `#3b82f6` ✨ **Azul vibrante** para **DETALHES**
+- **`--accent-orange`**: `#fbbf24` 🌟 **Laranja amarelado** para **SECUNDÁRIO**
+- **Backgrounds**: Tons escuros suaves (`#0f172a`, `#1e293b`, `#334155`)
+- **Texto**: Branco e cinza claro para legibilidade
 
 ---
 
@@ -115,13 +119,19 @@ Conecta ao WiFi e reinicia.
 
 ---
 
-### **Dashboard (Modo STA - Async)**
+### **Dashboard (Modo STA - Síncrono)**
 
 #### `GET /`
 Serve página `index.html` (Dashboard)
 
+#### `GET /css/style.css`
+Serve CSS compartilhado
+
+#### `GET /js/dashboard.js`
+Serve JavaScript do dashboard
+
 #### `GET /api/sensors`
-Retorna dados dos sensores (async).
+Retorna dados dos sensores.
 
 **Resposta:**
 ```json
@@ -137,10 +147,7 @@ Retorna dados dos sensores (async).
 ```
 
 #### `GET /api/status`
-Status do sistema (async).
-
-#### `GET /api/config`
-Configurações (senha oculta).
+Status do sistema.
 
 ---
 
@@ -259,7 +266,7 @@ Arquivos enviados:
 
 ---
 
-**Versão:** 3.0.0  
+**Versão:** 3.2.0  
 **Data:** 12/10/2025  
 **Autor:** Caio Maggiore  
-**Status:** ✅ Arquitetura Híbrida Implementada
+**Status:** ✅ Layout Unificado e Estrutura Final Implementada

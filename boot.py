@@ -128,13 +128,13 @@ if wifi_configured and ssid:
         print("[BOOT] WiFi: MonitorMiner_Setup")
         print("[BOOT] 🌐 http://192.168.4.1:8080")
         print("=" * 40)
-        print("[BOOT] ➡️  Carregando setup.py (Site Survey)")
+        print("[BOOT] ➡️  Carregando setup_wifi.py (Site Survey)")
         print("=" * 40)
         
         gc.collect()
         
-        # Importar setup.py (modo AP)
-        import setup
+        # Importar setup_wifi.py (modo AP)
+        import setup_wifi
 
 else:
     # Não configurado - Modo AP
@@ -153,10 +153,10 @@ else:
     print("[BOOT] WiFi: MonitorMiner_Setup")
     print("[BOOT] 🌐 http://192.168.4.1:8080")
     print("=" * 40)
-    print("[BOOT] ➡️  Carregando setup.py (Site Survey)")
+    print("[BOOT] ➡️  Carregando setup_wifi.py (Site Survey)")
     print("=" * 40)
     
     gc.collect()
     
-    # Importar setup.py (modo AP)
-    import setup
+    # Importar setup_wifi.py (modo AP)
+    import setup_wifi

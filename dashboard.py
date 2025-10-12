@@ -9,6 +9,7 @@ import network
 import json
 import time
 import gc
+import select
 
 print("[DASH] ========================================")
 print("[DASH] Dashboard - Servidor Síncrono")
@@ -87,18 +88,42 @@ addr = (ip, port)
 # Configurar socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.setblocking(False)  # Non-blocking para usar select()
 s.bind(addr)
 s.listen(5)
 
 print("=" * 40)
 print(f"[DASH] ✅ Servidor rodando!")
+print(f"[DASH] ✅ Modo: Pseudo-assíncrono (select)")
 print("=" * 40)
 print(f"[DASH] 🌐 http://{ip}:{port}")
 print("=" * 40)
 
-# Loop principal
+# Contador para tasks periódicas
+last_sensor_update = time.ticks_ms()
+sensor_interval = 10000  # 10 segundos
+
+# Loop principal com select()
 while True:
     try:
+        # select() espera conexão ou timeout (100ms)
+        readable, _, _ = select.select([s], [], [], 0.1)
+        
+        if not readable:
+            # Sem conexão - executar tasks periódicas
+            current_time = time.ticks_ms()
+            
+            # Atualizar sensores a cada 10s
+            if time.ticks_diff(current_time, last_sensor_update) > sensor_interval:
+                # TODO: Implementar leitura real de sensores
+                # sensors_data = read_all_sensors()
+                # save_sensors(sensors_data)
+                last_sensor_update = current_time
+                # print("[DASH] Sensores atualizados")
+            
+            continue
+        
+        # Tem conexão pronta!
         conn, client_addr = s.accept()
         print(f"[DASH] Conexão de {client_addr}")
         
@@ -117,6 +142,18 @@ while True:
             # Dashboard
             html = load_file('web/index.html')
             response = http_response(html, 'text/html')
+            
+        elif '/css/style.css' in path:
+            # CSS
+            print(f"[DASH] Servindo style.css")
+            css = load_file('web/css/style.css')
+            response = http_response(css, 'text/css')
+            
+        elif '/js/dashboard.js' in path:
+            # JavaScript
+            print(f"[DASH] Servindo dashboard.js")
+            js = load_file('web/js/dashboard.js')
+            response = http_response(js, 'application/javascript')
             
         elif path.startswith('/api/sensors'):
             # API Sensores

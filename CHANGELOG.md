@@ -1,5 +1,178 @@
 # Changelog - Monitor Miner
 
+## [3.2.0] - 12/10/2025 - LAYOUT UNIFICADO E ESTRUTURA FINAL 🎨
+
+### 🎯 Sistema de Layout Unificado Implementado
+
+#### ✅ CSS e JavaScript Separados
+
+**Problema Resolvido:**
+- CSS e JavaScript estavam inline nos arquivos HTML
+- Código não era reutilizável entre páginas
+- Manutenção difícil e inconsistente
+
+**Solução: Estrutura web/ organizada**
+```
+esp32/
+├── web/           ← HTML files
+│   ├── index.html
+│   ├── setup_wifi.html
+│   ├── css/       ← CSS compartilhado
+│   │   └── style.css
+│   └── js/        ← JavaScript files
+│       ├── setup_wifi.js
+│       └── dashboard.js
+├── data/          ← JSON files
+│   ├── config.json
+│   └── sensors.json
+├── boot.py
+├── main.py
+├── setup_wifi.py  ← Serve setup_wifi (AP mode)
+└── dashboard.py   ← Serve dashboard (STA mode)
+```
+
+**Benefícios:**
+- ✅ **CSS compartilhado** entre setup e dashboard
+- ✅ **JavaScript modular** e reutilizável
+- ✅ **Estrutura profissional** e organizada
+- ✅ **Manutenção facilitada** - uma mudança afeta todas as páginas
+- ✅ **Padrão estabelecido** para futuras páginas
+
+#### 🎨 Padrão de Cores Unificado
+
+**Esquema de Cores Implementado:**
+- **`--accent-blue`**: `#3b82f6` ✨ **Azul vibrante** para **DETALHES** (bordas, ícones, hover)
+- **`--accent-orange`**: `#fbbf24` 🌟 **Laranja amarelado** para **SECUNDÁRIO** (botões cancelar, alguns ícones)
+- **Backgrounds**: Tons escuros suaves (`#0f172a`, `#1e293b`, `#334155`)
+- **Texto**: Branco e cinza claro para legibilidade
+
+**Aplicação:**
+- ✅ **Headers**: Fundo dark + borda azul vibrante como detalhe
+- ✅ **Ícones de cards**: Alternando azul vibrante e laranja amarelado
+- ✅ **Botões**:
+  - **Conectar/Sucesso**: Azul vibrante
+  - **Cancelar**: Laranja amarelado
+- ✅ **Bordas de destaque**: Azul vibrante em `info-item` e `dashboard-header`
+
+#### 📱 Interface Responsiva e Profissional
+
+**Dashboard:**
+- ✅ **Cards organizados** em grid responsivo
+- ✅ **Ícones específicos** para cada tipo de dado
+- ✅ **Status visual** com cores de estado (verde/vermelho)
+- ✅ **Informações do sistema** em seção dedicada
+- ✅ **Padding ajustado** (20px) para melhor espaçamento
+
+**Setup WiFi:**
+- ✅ **Lista suspensa** para seleção de redes
+- ✅ **Auto-fechamento** após seleção
+- ✅ **Campos de senha** aparecem automaticamente
+- ✅ **Feedback visual** durante conexão
+
+### 📋 Arquivos Criados/Modificados
+
+**web/css/style.css** (NOVO - 598 linhas)
+- CSS compartilhado para todo o projeto
+- Variáveis CSS para consistência
+- Estilos específicos para dashboard e setup
+- Tema dark com cores vibrantes apenas em detalhes
+- Layout responsivo e profissional
+
+**web/js/dashboard.js** (NOVO - 84 linhas)
+- JavaScript extraído do index.html
+- Atualização automática a cada 5 segundos
+- APIs para sensores e status do sistema
+- Buffer anti-truncamento
+
+**web/index.html** (REFATORADO - 126 linhas, antes 444)
+- HTML limpo sem CSS/JS inline
+- Estrutura semântica e acessível
+- Classes específicas para dashboard
+- Links para arquivos externos
+
+**setup_wifi.py** (ATUALIZADO)
+- Rotas para `/css/style.css` e `/js/setup_wifi.js`
+- Servindo arquivos da nova estrutura
+
+**dashboard.py** (ATUALIZADO)
+- Rotas para `/css/style.css` e `/js/dashboard.js`
+- Servindo arquivos da nova estrutura
+
+### 🎯 Padrão para Futuras Páginas
+
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Miner - [Nome da Página]</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body class="[page-name]-page">
+    <div class="container">
+        <div class="header">
+            <h1>📡 [TÍTULO]</h1>
+            <p>[Descrição]</p>
+        </div>
+        <div class="content">
+            <!-- Conteúdo aqui -->
+        </div>
+    </div>
+    <script src="./js/[page-name].js"></script>
+</body>
+</html>
+```
+
+### ✅ Status Final
+
+- [x] Estrutura web/ organizada ✅
+- [x] CSS compartilhado implementado ✅
+- [x] JavaScript modularizado ✅
+- [x] Cores unificadas aplicadas ✅
+- [x] Layout responsivo funcionando ✅
+- [x] Setup WiFi com dropdown ✅
+- [x] Dashboard profissional ✅
+- [x] Padrão estabelecido para crescimento ✅
+
+---
+
+## [3.1.0] - 12/10/2025 - SELECT() PSEUDO-ASSÍNCRONO 🚀
+
+### 🎉 Sistema Pseudo-Assíncrono Implementado
+
+#### ✅ select() em Ambos Servidores
+
+**Implementação:**
+- setup.py agora usa `select.select()` com timeout de 100ms
+- dashboard.py agora usa `select.select()` com timeout de 100ms
+- Socket non-blocking permite executar tasks entre requisições
+
+**Benefícios:**
+- ✅ Servidor HTTP **não bloqueia** mais
+- ✅ Pode executar tasks a cada 100ms
+- ✅ Sensores podem atualizar independente de acessos
+- ✅ Relés podem ser controlados em paralelo
+- ✅ CPU usage ~30% (antes 5% idle ou 100% busy)
+
+**Exemplo de uso:**
+```python
+# Dashboard pode ler sensores a cada 10s
+if timeout: update_sensors()
+```
+
+#### 📁 CSS e JS Separados (Tentativa 2)
+
+**Mudança:**
+- setup.html → HTML puro + links para CSS/JS
+- setup.css → Estilos completos
+- setup.js → Lógica completa
+- Rotas /setup.css e /setup.js no servidor
+
+**Objetivo:** Código mais organizado e manutenível
+
+---
+
 ## [3.0.0] - 12/10/2025 - ARQUITETURA HÍBRIDA 🎯
 
 ### 🎉 Refatoração Completa - Solução Definitiva

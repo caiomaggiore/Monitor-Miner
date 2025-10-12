@@ -10,6 +10,7 @@ import json
 import time
 import gc
 import machine
+import select
 
 print("[SETUP] ========================================")
 print("[SETUP] Modo Setup - Configuração WiFi")
@@ -142,6 +143,42 @@ def http_response(content, content_type='text/html', status='200 OK'):
     else:
         return response.encode('utf-8') + content
 
+def send_response_safe(conn, response):
+    """Envia resposta por chunks e aguarda confirmação"""
+    try:
+        # Enviar por chunks pequenos (512 bytes) para garantir entrega
+        chunk_size = 512
+        total_sent = 0
+        
+        while total_sent < len(response):
+            chunk = response[total_sent:total_sent + chunk_size]
+            sent = conn.send(chunk)
+            if sent == 0:
+                print(f"[SETUP_WIFI] Erro: Conexão fechada pelo cliente")
+                return False
+            total_sent += sent
+            
+            # Aguardar um pouco para garantir entrega
+            time.sleep(0.01)  # 10ms entre chunks
+            
+        print(f"[SETUP_WIFI] Resposta enviada: {total_sent}/{len(response)} bytes")
+        
+        # AGUARDAR CONFIRMAÇÃO: Tentar receber dados do cliente
+        # (isso força o cliente a processar completamente antes de fechar)
+        try:
+            conn.settimeout(1.0)  # 1 segundo para confirmação
+            confirmation = conn.recv(1)  # Tentar receber 1 byte
+            print(f"[SETUP_WIFI] Confirmação recebida: {len(confirmation) if confirmation else 0} bytes")
+        except:
+            # Timeout é normal - cliente não enviou confirmação
+            print(f"[SETUP_WIFI] Cliente não confirmou (timeout normal)")
+        
+        return total_sent == len(response)
+        
+    except Exception as e:
+        print(f"[SETUP_WIFI] Erro ao enviar: {e}")
+        return False
+
 def parse_request(request_data):
     """Parse básico da requisição HTTP"""
     try:
@@ -178,26 +215,29 @@ def parse_request(request_data):
 # ============================================================================
 
 def run_server():
-    """Servidor HTTP síncrono"""
+    """Servidor HTTP com select() - pseudo-assíncrono"""
     
     # Configurar socket
     addr = ('192.168.4.1', 8080)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.setblocking(True)   # Blocking para setup síncrono!
     s.bind(addr)
     s.listen(5)
     
     print("[SETUP] ========================================")
-    print(f"[SETUP] ✅ Servidor rodando em http://{addr[0]}:{addr[1]}")
-    print("[SETUP] ========================================")
+    print(f"[SETUP_WIFI] ✅ Servidor rodando em http://{addr[0]}:{addr[1]}")
+    print("[SETUP_WIFI] ✅ Modo: Síncrono (1 usuário)")
+    print("[SETUP_WIFI] ========================================")
     
-    # Loop principal
+    # Loop principal SÍNCRONO
     while True:
         try:
-            # Aceitar conexão
+            # SÍNCRONO: Aguarda conexão (sem timeout)
+            print(f"[SETUP_WIFI] Aguardando conexão...")
             conn, client_addr = s.accept()
-            print(f"[SETUP] ============ Nova Conexão ============")
-            print(f"[SETUP] Cliente: {client_addr}")
+            print(f"[SETUP_WIFI] ============ Nova Conexão ============")
+            print(f"[SETUP_WIFI] Cliente: {client_addr}")
             
             # Receber requisição
             conn.settimeout(5.0)
@@ -220,22 +260,24 @@ def run_server():
                 print(f"[SETUP] Preflight CORS para {path}")
                 response = http_response('', 'text/plain')
                 
-            elif path == '/' or path.startswith('/index') or path.startswith('/setup.html'):
-                # Página principal (setup.html)
-                print(f"[SETUP] Servindo setup.html")
-                html = load_file('web/setup.html')
+            elif path == '/' or path.startswith('/index') or path.startswith('/setup_wifi.html'):
+                # Página principal (setup_wifi.html)
+                print(f"[SETUP_WIFI] Servindo setup_wifi.html")
+                html = load_file('web/setup_wifi.html')
                 response = http_response(html, 'text/html')
                 
-            elif path == '/setup.css' or path.startswith('/setup.css'):
-                # CSS
-                print(f"[SETUP] Servindo setup.css")
-                css = load_file('web/setup.css')
+            elif '/css/style.css' in path:
+                # CSS Compartilhado
+                print(f"[SETUP_WIFI] Servindo style.css")
+                css = load_file('web/css/style.css')
+                print(f"[SETUP_WIFI] CSS carregado: {len(css)} bytes")
                 response = http_response(css, 'text/css')
                 
-            elif path == '/setup.js' or path.startswith('/setup.js'):
+            elif '/js/setup_wifi.js' in path:
                 # JavaScript
-                print(f"[SETUP] Servindo setup.js")
-                js = load_file('web/setup.js')
+                print(f"[SETUP_WIFI] Servindo setup_wifi.js")
+                js = load_file('web/js/setup_wifi.js')
+                print(f"[SETUP_WIFI] JS carregado: {len(js)} bytes")
                 response = http_response(js, 'application/javascript')
                 
             elif path == '/api/scan' or path.startswith('/api/scan'):
@@ -269,7 +311,8 @@ def run_server():
                         response = http_response(response_data, 'application/json')
                         
                         # Enviar resposta e reiniciar
-                        conn.send(response)
+                        send_response_safe(conn, response)
+                        time.sleep(0.5)  # Aguardar processamento
                         conn.close()
                         
                         print("[SETUP] ========================================")
@@ -307,11 +350,19 @@ def run_server():
                 response = http_response(response_data, 'application/json', '404 Not Found')
             
             # Enviar resposta
-            print(f"[SETUP] Enviando resposta ({len(response)} bytes)...")
-            conn.send(response)
-            print(f"[SETUP] ✅ Resposta enviada")
+            print(f"[SETUP_WIFI] Enviando resposta ({len(response)} bytes)...")
+            success = send_response_safe(conn, response)
+            if success:
+                print(f"[SETUP_WIFI] ✅ Resposta enviada completamente")
+            else:
+                print(f"[SETUP_WIFI] ❌ Erro no envio da resposta")
+            
+            # AGUARDAR antes de fechar (garantir que cliente processou)
+            print(f"[SETUP_WIFI] Aguardando processamento do cliente...")
+            time.sleep(0.5)  # 500ms para garantir processamento
+            
             conn.close()
-            print(f"[SETUP] ============ Conexão Fechada ============")
+            print(f"[SETUP_WIFI] ============ Conexão Fechada ============")
             
             # Limpar memória
             gc.collect()
