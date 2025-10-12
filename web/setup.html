@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup WiFi</title>
+    <style>
+        body { font-family: Arial; background: #667eea; color: white; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; color: #333; padding: 30px; border-radius: 10px; }
+        button { padding: 15px 30px; font-size: 16px; cursor: pointer; border: none; border-radius: 25px; background: #667eea; color: white; margin: 10px; }
+        button:disabled { opacity: 0.5; }
+        .network { padding: 15px; margin: 10px 0; background: #f0f0f0; border-radius: 8px; cursor: pointer; }
+        .network:hover { background: #e0e0ff; }
+        .selected { background: #d0d0ff; border: 2px solid #667eea; }
+        .hidden { display: none; }
+        input { padding: 10px; font-size: 16px; width: 100%; border: 2px solid #ddd; border-radius: 5px; margin: 10px 0; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📡 CONFIGURAÇÃO WIFI</h1>
+        <p>Monitor Miner v3.0</p>
+        
+        <div id="status" style="background: #ffffcc; padding: 10px; margin: 20px 0; border-radius: 5px; color: #333;">
+            Aguardando...
+        </div>
+        
+        <button id="scanBtn">🔍 Buscar Redes</button>
+        
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p style="text-align: center;">Buscando...</p>
+        </div>
+        
+        <div id="networks"></div>
+        
+        <div id="formSection" class="hidden">
+            <h3>Conectar</h3>
+            <input type="text" id="selectedSsid" readonly>
+            <input type="password" id="password" placeholder="Senha">
+            <button id="connectBtn">✅ Conectar</button>
+            <button id="cancelBtn">❌ Cancelar</button>
+        </div>
+        
+        <div id="message"></div>
+    </div>
+    
+    <script>
+        let selectedNetwork = null;
+        
+        document.getElementById('status').textContent = 'JavaScript carregado OK!';
+        console.log('JS: Script carregado');
+        
+        document.getElementById('scanBtn').onclick = function() {
+            console.log('JS: Botão clicado!');
+            document.getElementById('status').textContent = 'Botão funcionou! Fazendo scan...';
+            
+            const btn = document.getElementById('scanBtn');
+            const loading = document.getElementById('loading');
+            const networks = document.getElementById('networks');
+            
+            btn.disabled = true;
+            loading.classList.remove('hidden');
+            networks.innerHTML = '';
+            
+            fetch('/api/scan')
+                .then(response => {
+                    console.log('JS: Resposta recebida', response.status);
+                    document.getElementById('status').textContent = 'Resposta recebida! Status: ' + response.status;
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('JS: Dados', data);
+                    document.getElementById('status').textContent = 'Dados recebidos! Redes: ' + data.networks.length;
+                    
+                    loading.classList.add('hidden');
+                    
+                    if (data.success && data.networks.length > 0) {
+                        data.networks.forEach(net => {
+                            const div = document.createElement('div');
+                            div.className = 'network';
+                            div.textContent = net.ssid + ' (' + net.security + ') ' + net.rssi + 'dBm';
+                            div.onclick = function() {
+                                document.querySelectorAll('.network').forEach(n => n.classList.remove('selected'));
+                                div.classList.add('selected');
+                                selectedNetwork = net.ssid;
+                                document.getElementById('selectedSsid').value = net.ssid;
+                                document.getElementById('formSection').classList.remove('hidden');
+                            };
+                            networks.appendChild(div);
+                        });
+                    } else {
+                        networks.innerHTML = '<p>Nenhuma rede encontrada</p>';
+                    }
+                    
+                    btn.disabled = false;
+                })
+                .catch(error => {
+                    console.error('JS: Erro', error);
+                    document.getElementById('status').textContent = 'ERRO: ' + error.message;
+                    loading.classList.add('hidden');
+                    btn.disabled = false;
+                });
+        };
+        
+        document.getElementById('cancelBtn').onclick = function() {
+            document.getElementById('formSection').classList.add('hidden');
+            document.querySelectorAll('.network').forEach(n => n.classList.remove('selected'));
+            selectedNetwork = null;
+        };
+        
+        document.getElementById('connectBtn').onclick = function() {
+            const ssid = selectedNetwork;
+            const password = document.getElementById('password').value;
+            
+            if (!ssid) {
+                alert('Selecione uma rede');
+                return;
+            }
+            
+            document.getElementById('message').textContent = 'Conectando a ' + ssid + '...';
+            
+            fetch('/api/connect', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ssid: ssid, password: password})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('message').textContent = 'Conectado! Reiniciando...';
+                    setTimeout(() => location.href = '/', 3000);
+                } else {
+                    document.getElementById('message').textContent = 'Erro: ' + data.error;
+                }
+            })
+            .catch(error => {
+                document.getElementById('message').textContent = 'Erro ao conectar';
+            });
+        };
+    </script>
+</body>
+</html>

@@ -1,87 +1,162 @@
 """
-Boot - Monitor Miner v2.0
-Inicialização limpa do WiFi AP
+Boot - Monitor Miner v3.0
+MINIMALISTA: Apenas verifica configuração e direciona
+
+Fluxo:
+1. Desliga interfaces
+2. Verifica se WiFi está configurado
+3. Se SIM → Tenta conectar → main.py (STA + Async)
+4. Se NÃO ou FALHA → setup.py (AP + Sync)
 """
 
 import network
 import time
 import gc
+import json
+
+# ============================================================================
+# HELPERS
+# ============================================================================
+
+def format_mem(b):
+    """Formata bytes para KB"""
+    return f"{b/1024:.1f}KB ({b}b)"
+
+def load_config():
+    """Carrega configuração WiFi"""
+    try:
+        with open('data/config.json', 'r') as f:
+            return json.load(f)
+    except:
+        return {
+            "wifi": {"ssid": "", "password": "", "configured": False},
+            "system": {"name": "Monitor Miner", "version": "3.0", "first_boot": True}
+        }
+
+# ============================================================================
+# INICIALIZAÇÃO
+# ============================================================================
 
 print("[BOOT] ========================================")
-print("[BOOT] Monitor Miner v2.0 - Iniciando...")
+print("[BOOT] Monitor Miner v3.0 - Boot")
 print("[BOOT] ========================================")
 
-# Variável global
-ap_mode = False
-
-# PASSO 1: DESLIGAR TUDO (CRÍTICO!)
-print("[BOOT] [1/7] Desligando todas as interfaces...")
-
+# [1] Desligar tudo
+print("[BOOT] [1/4] Desligando interfaces...")
 sta = network.WLAN(network.STA_IF)
 ap = network.WLAN(network.AP_IF)
 
-# Desconectar e desativar STA
 if sta.active():
-    print("[BOOT]   STA ativo, desligando...")
     sta.disconnect()
     sta.active(False)
     time.sleep(1)
 
-# Desativar AP anterior
 if ap.active():
-    print("[BOOT]   AP ativo, desligando...")
     ap.active(False)
     time.sleep(1)
 
 print("[BOOT]   ✅ Interfaces desligadas")
 
-# PASSO 2: Limpar memória
-print("[BOOT] [2/7] Limpando memória...")
+# [2] Limpar memória
+print("[BOOT] [2/4] Limpando memória...")
 gc.collect()
-print(f"[BOOT]   Memória livre: {gc.mem_free()} bytes")
+gc.threshold(gc.mem_free() // 4 + gc.mem_alloc())
+print(f"[BOOT]   Memória: {format_mem(gc.mem_free())}")
 
-# PASSO 3: Aguardar estabilização
-print("[BOOT] [3/7] Aguardando estabilização do WiFi...")
-time.sleep(2)
+# [3] Verificar configuração
+print("[BOOT] [3/4] Verificando configuração...")
+config = load_config()
+wifi_configured = config.get('wifi', {}).get('configured', False)
+ssid = config.get('wifi', {}).get('ssid', '')
+password = config.get('wifi', {}).get('password', '')
 
-# PASSO 4: Ativar AP
-print("[BOOT] [4/7] Ativando Access Point...")
-ap.active(True)
-time.sleep(1)
+print(f"[BOOT]   WiFi configurado: {wifi_configured}")
 
-# Verificar se ativou
-if not ap.active():
-    print("[BOOT] ❌ ERRO: AP não ativou!")
-    ap_mode = False
-else:
-    # PASSO 5: Configurar IP
-    print("[BOOT] [5/7] Configurando rede...")
-    ap.ifconfig(('192.168.4.1', '255.255.255.0', '192.168.4.1', '8.8.8.8'))
-    time.sleep(0.5)
+# [4] Decidir modo
+print("[BOOT] [4/4] Decidindo modo...")
+
+if wifi_configured and ssid:
+    # Tentar conectar em modo STA
+    print(f"[BOOT]   → Conectando a: {ssid}")
     
-    # PASSO 6: Configurar SSID e segurança
-    print("[BOOT] [6/7] Configurando SSID...")
-    ap.config(essid='MonitorMiner_Setup', authmode=0)  # authmode=0 = Open
+    sta.active(True)
+    time.sleep(1)
+    sta.connect(ssid, password)
+    
+    # Aguardar (15s)
+    timeout = 15
+    while timeout > 0 and not sta.isconnected():
+        time.sleep(1)
+        timeout -= 1
+    
+    if sta.isconnected():
+        # ✅ SUCESSO - Modo STA
+        ip = sta.ifconfig()[0]
+        print("=" * 40)
+        print("[BOOT] ✅ CONECTADO!")
+        print("=" * 40)
+        print(f"[BOOT] SSID: {ssid}")
+        print(f"[BOOT] IP: {ip}")
+        print(f"[BOOT] 🌐 http://{ip}:8080")
+        print("=" * 40)
+        print("[BOOT] ➡️  Carregando main.py (Dashboard)")
+        print("=" * 40)
+        
+        gc.collect()
+        
+        # Importar main.py (modo STA)
+        import main
+        
+    else:
+        # ❌ FALHA - Entrar em modo AP
+        print("[BOOT] ❌ Falha ao conectar")
+        print("[BOOT] ➡️  Entrando em modo Setup...")
+        
+        sta.active(False)
+        time.sleep(1)
+        
+        # Configurar AP
+        ap.active(True)
+        time.sleep(1)
+        ap.ifconfig(('192.168.4.1', '255.255.255.0', '192.168.4.1', '8.8.8.8'))
+        ap.config(essid='MonitorMiner_Setup', authmode=0)
+        time.sleep(1)
+        
+        print("=" * 40)
+        print("[BOOT] ✅ AP ATIVO")
+        print("=" * 40)
+        print("[BOOT] WiFi: MonitorMiner_Setup")
+        print("[BOOT] 🌐 http://192.168.4.1:8080")
+        print("=" * 40)
+        print("[BOOT] ➡️  Carregando setup.py (Site Survey)")
+        print("=" * 40)
+        
+        gc.collect()
+        
+        # Importar setup.py (modo AP)
+        import setup
+
+else:
+    # Não configurado - Modo AP
+    print("[BOOT]   → Não configurado")
+    
+    # Configurar AP
+    ap.active(True)
+    time.sleep(1)
+    ap.ifconfig(('192.168.4.1', '255.255.255.0', '192.168.4.1', '8.8.8.8'))
+    ap.config(essid='MonitorMiner_Setup', authmode=0)
     time.sleep(1)
     
-    # PASSO 7: Verificar
-    print("[BOOT] [7/7] Verificando configuração...")
-    ip_info = ap.ifconfig()
-    
     print("=" * 40)
-    print("[BOOT] ✅ AP ATIVO E ESTÁVEL!")
+    print("[BOOT] ✅ AP ATIVO")
     print("=" * 40)
-    print(f"[BOOT] SSID: MonitorMiner_Setup")
-    print(f"[BOOT] IP: {ip_info[0]}")
-    print(f"[BOOT] Gateway: {ip_info[2]}")
-    print(f"[BOOT] DHCP: 192.168.4.2 - 192.168.4.254")
+    print("[BOOT] WiFi: MonitorMiner_Setup")
+    print("[BOOT] 🌐 http://192.168.4.1:8080")
     print("=" * 40)
-    print("[BOOT] 📱 CONECTE:")
-    print("[BOOT]   WiFi: MonitorMiner_Setup (sem senha)")
-    print("[BOOT]   URL: http://192.168.4.1:8080")
+    print("[BOOT] ➡️  Carregando setup.py (Site Survey)")
     print("=" * 40)
     
-    ap_mode = True
-
-print("[BOOT] Boot finalizado!")
-print("[BOOT] ========================================")
+    gc.collect()
+    
+    # Importar setup.py (modo AP)
+    import setup
