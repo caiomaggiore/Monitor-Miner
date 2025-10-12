@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Miner v2.0</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        
+        p {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .status p {
+            margin: 10px 0;
+        }
+        
+        .links {
+            margin-top: 30px;
+        }
+        
+        .api-link {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .api-link:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Hello World!</h1>
+        <p>Monitor Miner v2.0</p>
+        
+        <div class="status">
+            <p>✅ Servidor ESP32 funcionando!</p>
+            <p id="mode">Modo: Carregando...</p>
+            <p id="memory">Memória: Carregando...</p>
+            <p id="ip">IP: Carregando...</p>
+        </div>
+        
+        <div class="links">
+            <a href="/test" class="api-link">🔍 Teste API</a>
+            <a href="/api/status" class="api-link">📊 Status</a>
+        </div>
+    </div>
+    
+    <script>
+        // Carregar status via API
+        fetch('/api/status')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('mode').textContent = 'Modo: ' + data.mode;
+                document.getElementById('memory').textContent = 'Memória livre: ' + (data.memory_free / 1024).toFixed(1) + ' KB';
+                document.getElementById('ip').textContent = 'IP: ' + data.ip;
+            })
+            .catch(err => {
+                console.error('Erro ao carregar status:', err);
+            });
+    </script>
+</body>
+</html>
+

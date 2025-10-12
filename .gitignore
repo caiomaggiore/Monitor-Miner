@@ -1,0 +1,21 @@
+# MicroPython / ESP32
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Arquivos de backup
+*.bak
+*.tmp
+
+# Logs
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
