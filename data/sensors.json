@@ -1,0 +1,15 @@
+{
+  "temperature": 0.0,
+  "humidity": 0.0,
+  "miners": {
+    "total": 0,
+    "online": 0,
+    "offline": 0
+  },
+  "power": {
+    "consumption": 0.0,
+    "status": "unknown"
+  },
+  "last_update": 0
+}
+
