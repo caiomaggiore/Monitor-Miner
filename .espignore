@@ -1,0 +1,67 @@
+# .espignore - Arquivos e pastas que NÃO devem ser enviados para ESP32
+# Similar ao .gitignore, mas para uploads ESP32
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Ferramentas e scripts de desenvolvimento
+tools/
+docs/
+.vscode/
+.venv/
+.micropico/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Arquivos de configuração local
+config.py
+config.example.py
+.gitignore
+.espignore
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.log
+*.bak
+
+# Python cache
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Firmware e binários
+firmware/
+*.bin
+
+# Scripts de upload e gestão
+upload_*.py
+simple_upload.py
+minimal_upload.py
+install_tools.py
+pymakr.conf
+
+# Banco de dados local (se houver)
+database.py
+logger.py
+relays.py
+sensors.py
+*_init.py
+
+# API (scripts auxiliares)
+api/
+
+# Arquivos do projeto que ficam só no PC
+README.md
+*.md
+
+# Comentários:
+# - Apenas esp32/ e seu conteúdo serão enviados
+# - Para adicionar exceções, use !arquivo.py
+# - Linhas começando com # são comentários
+

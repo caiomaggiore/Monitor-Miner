@@ -1,0 +1,43 @@
+# MicroPython / ESP32
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Configurações sensíveis
+config.py
+data/*.json
+data/*.log
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Pymakr
+.pymakr.conf
+pymakr.json
+
+# Backups
+*.bak
+*.backup
+
+# Documentação gerada
+docs/_build/
+
+# Distribuição
+dist/
+build/
+*.egg-info/
+
