@@ -41,3 +41,16 @@ dist/
 build/
 *.egg-info/
 
+# ============================================================================
+# IGNORAR PASTAS DE TESTE E FERRAMENTAS (Apenas locais, não vão pro GitHub)
+# ============================================================================
+_backup_v2_completa/
+framework/
+tools/
+IDE-ESP-Cursor/
+firmware/
+docs/
+start.py
+setup_repos.bat
+config.py
+

@@ -1,217 +1,157 @@
-# Monitor Miner v2.0
+# 🔥 Monitor Miner ESP32 - v3.2.3
 
-Sistema de monitoramento e controle para mineração de Bitcoin usando ESP32.
+Sistema de monitoramento inteligente para mineração de Bitcoin com ESP32.
+
+## 📊 Status Atual
+
+**Versão:** v3.2.3 (Module Fix)  
+**Branch:** `main` (estável) | `v4.0` (desenvolvimento)  
+**Status:** ✅ Funcional e estável
+
+---
+
+## 🚀 Características v3.2.3
+
+- ✅ **Servidor HTTP único** gerenciado pelo `main.py`
+- ✅ **Arquitetura modular** - dashboard e config como módulos
+- ✅ **Watchdog Timer** - proteção contra travamentos
+- ✅ **Memory Optimizer** - gerenciamento inteligente de memória
+- ✅ **System Monitor** - métricas reais de CPU, RAM, Flash
+- ✅ **WiFi Setup** - portal de configuração automático
+- ✅ **APIs REST** - endpoints para dashboard e configuração
+
+---
 
 ## 📁 Estrutura do Projeto
 
 ```
-Monitor Miner/
-├── docs/                    # 📚 Documentação
-│   ├── README.md           # Documentação principal
-│   ├── GUIA_RAPIDO.md      # Guia rápido de uso
-│   ├── CONFIGURAR_PORTA.md # Como configurar porta COM
-│   └── COMPARACAO_V1_V2.md # Diferenças entre versões
+esp32/
+├── boot.py                     # Inicialização e modo de operação
+├── main.py                     # Roteador HTTP (gerencia tudo)
+├── dashboard.py                # Módulo dashboard (handlers)
+├── config.py                   # Módulo configuração (handlers)
+├── setup_wifi.py               # Setup WiFi (modo AP)
+├── system_monitor_simple.py    # Monitor de sistema
+├── memory_optimizer.py         # Otimizador de memória
+├── VERSION.json                # Informações de versão
 │
-├── esp32/                   # 🎯 CÓDIGO DO PROJETO PRINCIPAL
-│   ├── main.py             # Código principal
-│   ├── boot.py             # Boot do ESP32
-│   ├── hardware/           # Módulos de hardware
-│   ├── services/           # Serviços do sistema
-│   ├── web/                # Interface web
-│   └── data/               # Dados e logs
+├── data/                       # Dados e configurações
+│   ├── config.json             # Configuração WiFi
+│   ├── sensors_config.json     # Configuração de sensores
+│   └── sensors.json            # Dados dos sensores
 │
-├── tools/                   # 🔧 Ferramentas de Desenvolvimento
-│   ├── esp_manager.py      # ⭐ CLI de gerenciamento
-│   ├── upload_esp32.py     # Upload completo
-│   ├── test_esp32_simple.py # Teste de conexão
-│   ├── diagnose_esp32.py   # Diagnóstico
-│   └── ...outras ferramentas...
-│
-├── firmware/                # 📦 Firmware MicroPython
-├── config.py                # ⚙️ Configuração (porta COM, etc)
-└── .espignore               # 🚫 Arquivos ignorados no upload
+└── web/                        # Interface Web
+    ├── index.html              # Dashboard
+    ├── config.html             # Configuração
+    ├── setup_wifi.html         # Setup WiFi
+    ├── css/                    # Estilos
+    └── js/                     # JavaScript
 ```
-
-## 🚀 Quick Start
-
-### 1️⃣ Configurar Porta ESP32
-
-Edite `config.py` e altere a porta COM:
-
-```python
-ESP32_PORT = "COM6"  # Sua porta aqui
-```
-
-### 2️⃣ Iniciar o ESP Manager (Recomendado)
-
-```bash
-python start.py
-```
-
-Ou diretamente:
-```bash
-python tools/esp_manager.py
-```
-
-Interface CLI com todas as funcionalidades:
-- 📤 Upload completo e seletivo
-- 🔍 Diagnóstico do sistema
-- 💾 Verificar espaço e memória
-- 🖥️ REPL interativo
-- 🧹 Formatação e reset
-
-### 3️⃣ Ou Usar Ferramentas Individuais
-
-```bash
-# Testar conexão
-python tools/test_esp32_simple.py
-
-# Diagnóstico
-python tools/diagnose_esp32.py
-
-# Upload rápido
-python tools/simple_upload.py
-
-# Upload completo
-python tools/upload_esp32.py
-```
-
-## 📋 Workflow Recomendado
-
-### Desenvolvimento
-1. Use **ESP Manager** (`python tools/esp_manager.py`) para gestão geral
-2. Use **Thonny** para debug e testes rápidos
-3. Desenvolva código em `esp32/`
-
-### Deploy
-1. Teste localmente
-2. Use ESP Manager → **Upload Completo** 
-3. Monitore logs no REPL
-
-## 🎯 Ferramentas Principais
-
-### ESP Manager CLI ⭐
-```bash
-python tools/esp_manager.py
-```
-Interface completa de gerenciamento com:
-- Upload completo da pasta `esp32/`
-- Upload seletivo de arquivos
-- Diagnóstico e monitoramento
-- REPL integrado
-- Controle de espaço
-
-### Upload Rápido
-```bash
-python tools/simple_upload.py
-```
-Upload simples e direto dos arquivos essenciais.
-
-### Teste de Conexão
-```bash
-python tools/test_esp32_simple.py
-```
-Testa conexão, MicroPython, filesystem e espaço.
-
-### Diagnóstico
-```bash
-python tools/diagnose_esp32.py
-```
-Verifica MicroPython, arquivos e memória.
-
-### Formatação
-```bash
-python tools/format_esp32_auto.py
-```
-Formata e reinstala MicroPython automaticamente.
-
-## 📝 .espignore
-
-Controla quais arquivos **NÃO** devem ser enviados para ESP32:
-
-```gitignore
-# Ferramentas
-tools/
-docs/
-config.py
-
-# Arquivos temporários
-*.pyc
-__pycache__/
-
-# Veja .espignore para lista completa
-```
-
-Apenas o conteúdo de `esp32/` é enviado para a placa.
-
-## ⚙️ Configuração
-
-### config.py
-
-```python
-# Conexão ESP32
-ESP32_PORT = "COM5"          # Porta COM
-ESP32_BAUDRATE = 115200      # Baudrate
-
-# WiFi
-WIFI_SSID = "SuaRede"
-WIFI_PASSWORD = "SuaSenha"
-
-# Sensores
-DHT22_PIN = 23
-DHT11_PIN = 22
-
-# Relés
-RELAY_PINS = [25, 26, 32, 27]
-```
-
-## 🔧 Instalação de Dependências
-
-```bash
-# Instalar ferramentas Python
-pip install mpremote esptool
-
-# Verificar instalação
-python tools/test_esp32_simple.py
-```
-
-## 📖 Documentação Completa
-
-Consulte a pasta `docs/` para:
-- **README.md** - Documentação principal do projeto
-- **GUIA_RAPIDO.md** - Guia rápido de uso
-- **CONFIGURAR_PORTA.md** - Como configurar porta COM
-- **COMPARACAO_V1_V2.md** - Diferenças entre versões
-
-## 🆘 Problemas Comuns
-
-### ESP32 não conecta
-1. Verifique porta no Device Manager
-2. Edite `config.py` com a porta correta
-3. Teste: `python tools/test_esp32_simple.py`
-
-### Erro de upload
-1. Use ESP Manager para diagnóstico
-2. Verifique espaço disponível
-3. Tente formatação se necessário
-
-### Filesystem corrompido
-```bash
-python tools/format_esp32_auto.py
-```
-
-## 🎯 Próximos Passos
-
-1. ✅ Configure a porta em `config.py`
-2. ✅ Teste conexão com ESP32
-3. ✅ Use ESP Manager para primeiro upload
-4. 🚀 Comece a desenvolver em `esp32/`
-
-## 📜 Licença
-
-Monitor Miner v2.0 - Projeto de monitoramento para mineração de Bitcoin
 
 ---
 
-**Dica:** Use `python tools/esp_manager.py` como sua ferramenta principal! 🚀
+## 🔧 Como Usar
 
+### **1. Upload para ESP32**
+
+```bash
+# Instalar dependências
+pip install mpremote
+
+# Upload dos arquivos
+mpremote connect COM3 cp -r esp32/* :
+```
+
+### **2. Primeira Inicialização**
+
+1. ESP32 cria rede WiFi: `MonitorMiner_Setup`
+2. Conecte-se a essa rede
+3. Acesse: `http://192.168.4.1:8080`
+4. Configure sua rede WiFi
+5. ESP32 reinicia e conecta automaticamente
+
+### **3. Uso Normal**
+
+1. ESP32 conecta ao WiFi configurado
+2. Acesse pelo IP: `http://[IP_DO_ESP32]:8080`
+3. Dashboard mostra métricas em tempo real
+
+---
+
+## 🌐 APIs Disponíveis
+
+### **Dashboard**
+- `GET /` - Página principal
+- `GET /api/sensors` - Dados dos sensores
+- `GET /api/status` - Status do sistema
+
+### **Configuração**
+- `GET /config` - Página de configuração
+- `GET /api/sensors/config` - Configuração de sensores
+- `POST /api/sensors/add` - Adicionar sensor
+- `POST /api/sensors/remove` - Remover sensor
+
+### **Setup WiFi**
+- `GET /` - Página de setup
+- `GET /api/scan` - Escanear redes WiFi
+- `POST /api/connect` - Conectar a rede WiFi
+
+---
+
+## 🛣️ Roadmap
+
+### **v3.2.3** ✅ (Atual)
+- Correção de bugs críticos
+- Arquitetura modular básica
+- Sistema estável para produção
+
+### **v4.0** 🚧 (Em desenvolvimento - branch `v4.0`)
+- Arquitetura completamente refatorada
+- Services independentes (reutilizáveis)
+- Controllers (orquestradores)
+- Core modules (http_server, router)
+- Componentes UI reutilizáveis
+- Zero duplicação de código
+
+---
+
+## 📝 Changelog
+
+### [3.2.3] - 2025-10-21
+**Fixed:**
+- OSError EADDRINUSE: Conflito de porta entre servidores
+- SyntaxError em dashboard.py linha 66 (indentação except)
+- Indentação incorreta em múltiplos blocos
+- Função handle_config_request faltando em config.py
+
+**Changed:**
+- dashboard.py e config.py transformados em módulos
+- Servidor HTTP único gerenciado pelo main.py
+- Watchdog agora gerenciado apenas pelo main.py
+
+---
+
+## 🤝 Contribuindo
+
+Este é um projeto em desenvolvimento ativo. Contribuições são bem-vindas!
+
+### **Branches:**
+- `main` - Versão estável (v3.2.3)
+- `v4.0` - Desenvolvimento da próxima versão
+
+---
+
+## 📄 Licença
+
+Proprietário - Todos os direitos reservados
+
+---
+
+## 👤 Autor
+
+**Caio Maggiore**  
+[GitHub](https://github.com/caiomaggiore)
+
+---
+
+**⭐ Se este projeto foi útil, considere dar uma estrela!**
