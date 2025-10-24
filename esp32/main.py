@@ -1,124 +1,277 @@
-"""
-Main - Monitor Miner v3.0
-ROTEADOR INTELIGENTE: Decide qual servidor carregar baseado na requisição
-"""
+# ============================================================================
+# MAIN v4.0 - Monitor Miner v4.0
+# ============================================================================
+# Arquitetura v4.0 - Modular e escalável
+# - Core modules (http_server, router, response)
+# - Services (system_monitor, data_store)
+# - Controllers (dashboard, config)
+# ============================================================================
 
-import json
-import network
-import socket
 import time
-import select
+import gc
 from machine import WDT
 
-print("[MAIN] ========================================")
-print("[MAIN] Monitor Miner v3.0 - Roteador Inteligente")
-print("[MAIN] ========================================")
+# Core modules
+from core.http_server import HTTPServer
+from core.router import Router
+from core.response import json_response, error_response
 
-# Verificar modo
-ap = network.WLAN(network.AP_IF)
-sta = network.WLAN(network.STA_IF)
+# Services
+from services.system_monitor import system_monitor
+from services.data_store import data_store
 
-if ap.active():
-    # Modo AP - Carregar setup_wifi
-    print("[MAIN] Modo AP detectado → Carregando setup_wifi.py")
-    import setup_wifi
+# Controllers
+from controllers.dashboard_controller import dashboard_controller
+from controllers.config_controller import config_controller
+
+class MonitorMinerApp:
+    """
+    Aplicação principal v4.0
+    - Arquitetura modular
+    - Services independentes
+    - Controllers orquestradores
+    """
     
-elif sta.active() and sta.isconnected():
-    # Modo STA - Roteador inteligente
-    print("[MAIN] Modo STA detectado → Iniciando roteador inteligente")
-    
-    # Configurar WiFi
-    ip = sta.ifconfig()[0]
-    port = 8080
-    addr = (ip, port)
-    
-    # Configurar socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.setblocking(False)
-    s.bind(addr)
-    s.listen(5)
-    
-    print("=" * 40)
-    print(f"[MAIN] ✅ Roteador rodando!")
-    print(f"[MAIN] ✅ IP: {ip}:{port}")
-    print("=" * 40)
-    print(f"[MAIN] 🌐 http://{ip}:{port}")
-    print("=" * 40)
-    
-    # Watchdog Timer
-    print("[MAIN] Inicializando Watchdog Timer (15s)...")
-    wdt = WDT(timeout=15000)
-    print("[MAIN] ✅ Watchdog ativo")
-    
-    # Importar servidores
-    import dashboard
-    import config
-    
-    print("[MAIN] 🚀 Iniciando roteador...")
-    
-    while True:
-        wdt.feed()
+    def __init__(self):
+        self.http_server = None
+        self.router = None
+        self.wdt = None
+        self.running = False
         
+        print("[APP] 🚀 Inicializando Monitor Miner v4.0...")
+    
+    def initialize(self):
+        """Inicializa a aplicação"""
         try:
-            # select() espera conexão ou timeout (50ms)
-            readable, _, _ = select.select([s], [], [], 0.05)
+            # Inicializar servidor HTTP
+            self.http_server = HTTPServer(host='0.0.0.0', port=8080)
             
-            if not readable:
-                continue
+            # Inicializar router
+            self.router = Router()
+            self._setup_routes()
             
-            # Tem conexão pronta!
-            conn, client_addr = s.accept()
-            print(f"[MAIN] Conexão de {client_addr}")
+            # Inicializar watchdog
+            self.wdt = WDT(timeout=15)
             
+            print("[APP] ✅ Aplicação inicializada")
+            return True
+            
+        except Exception as e:
+            print(f"[APP] ❌ Erro na inicialização: {e}")
+            return False
+    
+    def _setup_routes(self):
+        """Configura rotas da aplicação"""
+        # Dashboard routes
+        self.router.add_route('GET', '/', self._handle_dashboard)
+        self.router.add_route('GET', '/dashboard', self._handle_dashboard)
+        self.router.add_route('GET', '/api/status', self._handle_api_status)
+        self.router.add_route('GET', '/api/sensors', self._handle_api_sensors)
+        self.router.add_route('GET', '/api/sensors/{id}', self._handle_api_sensor)
+        
+        # Config routes
+        self.router.add_route('GET', '/config', self._handle_config)
+        self.router.add_route('GET', '/api/config', self._handle_api_config)
+        self.router.add_route('POST', '/api/config', self._handle_api_config)
+        self.router.add_route('GET', '/api/sensors/config', self._handle_api_sensors_config)
+        self.router.add_route('POST', '/api/sensors/config', self._handle_api_sensors_config)
+        self.router.add_route('POST', '/api/sensors', self._handle_api_add_sensor)
+        self.router.add_route('DELETE', '/api/sensors/{id}', self._handle_api_remove_sensor)
+        
+        # Static files
+        self.router.add_route('GET', '/css/{file}', self._handle_static_file)
+        self.router.add_route('GET', '/js/{file}', self._handle_static_file)
+        self.router.add_route('GET', '/images/{file}', self._handle_static_file)
+        
+        # CORS preflight
+        self.router.add_route('OPTIONS', '/api/*', self._handle_cors_preflight)
+        
+        print("[APP] ✅ Rotas configuradas")
+    
+    def _handle_dashboard(self, request):
+        """Handler para dashboard"""
+        return dashboard_controller.handle_dashboard_request(request)
+    
+    def _handle_config(self, request):
+        """Handler para configuração"""
+        return config_controller.handle_config_request(request)
+    
+    def _handle_api_status(self, request):
+        """Handler para API de status"""
+        return dashboard_controller.handle_dashboard_request(request)
+    
+    def _handle_api_sensors(self, request):
+        """Handler para API de sensores"""
+        return dashboard_controller.handle_dashboard_request(request)
+    
+    def _handle_api_sensor(self, request):
+        """Handler para API de sensor específico"""
+        return dashboard_controller.handle_dashboard_request(request)
+    
+    def _handle_api_config(self, request):
+        """Handler para API de configuração"""
+        return config_controller.handle_config_request(request)
+    
+    def _handle_api_sensors_config(self, request):
+        """Handler para API de configuração de sensores"""
+        return config_controller.handle_config_request(request)
+    
+    def _handle_api_add_sensor(self, request):
+        """Handler para adicionar sensor"""
+        return config_controller.handle_config_request(request)
+    
+    def _handle_api_remove_sensor(self, request):
+        """Handler para remover sensor"""
+        return config_controller.handle_config_request(request)
+    
+    def _handle_static_file(self, request):
+        """Handler para arquivos estáticos"""
+        return dashboard_controller.handle_dashboard_request(request)
+    
+    def _handle_cors_preflight(self, request):
+        """Handler para CORS preflight"""
+        from core.response import cors_preflight_response
+        return cors_preflight_response()
+    
+    def start(self):
+        """Inicia a aplicação"""
+        if not self.initialize():
+            return False
+        
+        # Iniciar servidor HTTP
+        if not self.http_server.start():
+            return False
+        
+        self.running = True
+        print("[APP] 🚀 Aplicação iniciada!")
+        print(f"[APP] 🌐 http://192.168.1.100:8080")
+        print("=" * 50)
+        
+        # Loop principal
+        self._main_loop()
+        
+        return True
+    
+    def _main_loop(self):
+        """Loop principal da aplicação"""
+        while self.running:
             try:
-                # Receber requisição
-                request_data = conn.recv(1024).decode('utf-8')
-                if not request_data:
-                    conn.close()
-                    continue
+                # Aceitar conexão
+                client_socket, client_addr = self.http_server.socket.accept()
                 
-                # Parse da requisição
-                lines = request_data.split('\n')
-                if not lines:
-                    conn.close()
-                    continue
-                    
-                request_line = lines[0]
-                parts = request_line.split()
-                if len(parts) < 2:
-                    conn.close()
-                    continue
+                # Processar requisição
+                self._process_request(client_socket, client_addr)
                 
-                method = parts[0]
-                path = parts[1]
+                # Alimentar watchdog
+                if self.wdt:
+                    self.wdt.feed()
                 
-                print(f"[MAIN] {method} {path}")
-                
-                # ROTEAMENTO INTELIGENTE
-                if path == '/config' or path.startswith('/config') or path.startswith('/api/sensors/config') or path.startswith('/api/sensors/add') or path.startswith('/api/sensors/remove'):
-                    # Config - Redirecionar para servidor config
-                    print("[MAIN] → Roteando para CONFIG")
-                    config.handle_request(conn, method, path, request_data)
-                else:
-                    # Dashboard - Redirecionar para servidor dashboard
-                    print("[MAIN] → Roteando para DASHBOARD")
-                    dashboard.handle_request(conn, method, path, request_data)
+                # Otimização de memória
+                gc.collect()
                 
             except Exception as e:
-                print(f"[MAIN] Erro ao processar conexão: {e}")
-                try:
-                    conn.close()
-                except:
-                    pass
-        
-        except Exception as e:
-            print(f"[MAIN] ❌ Erro no roteador: {e}")
-            time.sleep(0.1)
+                print(f"[APP] ❌ Erro no loop principal: {e}")
+                time.sleep(0.1)
     
-else:
-    print("[MAIN] ⚠️ Nenhuma interface ativa! Reiniciando...")
-    import machine
-    import time
-    time.sleep(2)
-    machine.reset()
+    def _process_request(self, client_socket, client_addr):
+        """Processa requisição HTTP"""
+        try:
+            # Receber dados
+            request_data = client_socket.recv(1024).decode('utf-8')
+            if not request_data:
+                return
+            
+            # Parse da requisição
+            request_lines = request_data.split('\r\n')
+            if not request_lines:
+                return
+            
+            # Primeira linha: METHOD /path HTTP/1.1
+            request_line = request_lines[0]
+            parts = request_line.split(' ')
+            
+            if len(parts) < 2:
+                return
+            
+            method = parts[0]
+            path = parts[1]
+            
+            print(f"[APP] {method} {path} de {client_addr[0]}")
+            
+            # Criar contexto da requisição
+            request = {
+                'method': method,
+                'path': path,
+                'data': request_data,
+                'params': {},
+                'headers': self._parse_headers(request_data)
+            }
+            
+            # Processar através do router
+            response = self.router.process_request(method, path, request_data)
+            
+            # Enviar resposta
+            client_socket.send(response.encode('utf-8'))
+            
+        except Exception as e:
+            print(f"[APP] ❌ Erro ao processar requisição: {e}")
+            try:
+                error_response = error_response("Server Error")
+                client_socket.send(error_response.encode('utf-8'))
+            except:
+                pass
+        finally:
+            client_socket.close()
+    
+    def _parse_headers(self, request_data):
+        """Extrai headers da requisição"""
+        headers = {}
+        if not request_data:
+            return headers
+        
+        lines = request_data.split('\r\n')
+        for line in lines[1:]:  # Pular primeira linha
+            if ':' in line:
+                key, value = line.split(':', 1)
+                headers[key.strip().lower()] = value.strip()
+        
+        return headers
+    
+    def stop(self):
+        """Para a aplicação"""
+        self.running = False
+        if self.http_server:
+            self.http_server.stop()
+        print("[APP] 🔴 Aplicação parada")
+    
+    def get_stats(self):
+        """Retorna estatísticas da aplicação"""
+        return {
+            'app_version': '4.0.0',
+            'running': self.running,
+            'http_server_stats': self.http_server.get_stats() if self.http_server else None,
+            'router_stats': self.router.get_routes_info() if self.router else None,
+            'system_monitor_stats': system_monitor.get_stats(),
+            'data_store_stats': data_store.get_cache_stats()
+        }
+
+def main():
+    """Função principal"""
+    print("=" * 50)
+    print("🔥 MONITOR MINER v4.0 - ARQUITETURA MODULAR")
+    print("=" * 50)
+    
+    # Criar e iniciar aplicação
+    app = MonitorMinerApp()
+    
+    try:
+        app.start()
+    except KeyboardInterrupt:
+        print("\n[APP] ⏹️ Interrompido pelo usuário")
+    except Exception as e:
+        print(f"[APP] ❌ Erro fatal: {e}")
+    finally:
+        app.stop()
+
+if __name__ == "__main__":
+    main()
