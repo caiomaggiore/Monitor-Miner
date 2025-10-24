@@ -1,0 +1,93 @@
+{
+  "version": "1.0",
+  "last_updated": 0,
+  "sensors": [
+    {
+      "id": "example_dht22_1",
+      "type": "DHT22",
+      "name": "Temperatura Sala Quente",
+      "environment": "sala_quente",
+      "gpio": 22,
+      "enabled": true,
+      "created_at": 1704067200
+    },
+    {
+      "id": "example_relay_1",
+      "type": "Relay",
+      "name": "Relé Exaustor 1",
+      "environment": "sala_quente",
+      "gpio": 25,
+      "enabled": true,
+      "created_at": 1704067200
+    },
+    {
+      "id": "example_current_1",
+      "type": "Current",
+      "name": "Corrente Exaustor 1",
+      "environment": "sala_quente",
+      "gpio": 36,
+      "calibration": [
+        {"x": 18, "y": 0.25},
+        {"x": 144, "y": 0.4},
+        {"x": 520, "y": 0.99},
+        {"x": 1210, "y": 1.7},
+        {"x": 2930, "y": 4.0},
+        {"x": 3260, "y": 5.7},
+        {"x": 3550, "y": 10}
+      ],
+      "enabled": true,
+      "created_at": 1704067200
+    },
+    {
+      "id": "example_exaustor_1",
+      "type": "Exaustor",
+      "name": "Exaustor Principal",
+      "environment": "sala_quente",
+      "relay": {
+        "gpio": 26,
+        "enabled": true
+      },
+      "current": {
+        "gpio": 39,
+        "calibration": [
+          {"x": 18, "y": 0.25},
+          {"x": 144, "y": 0.4},
+          {"x": 520, "y": 0.99},
+          {"x": 1210, "y": 1.7},
+          {"x": 2930, "y": 4.0},
+          {"x": 3260, "y": 5.7},
+          {"x": 3550, "y": 10}
+        ],
+        "enabled": true
+      },
+      "enabled": true,
+      "created_at": 1704067200
+    }
+  ],
+  "environments": {
+    "sala_quente": {
+      "name": "Sala Quente (Saída de Ar)",
+      "description": "Ambiente onde o ar quente é expelido",
+      "icon": "🔥"
+    },
+    "sala_fria": {
+      "name": "Sala Fria (Entrada de Ar)",
+      "description": "Ambiente onde o ar frio entra",
+      "icon": "🏠"
+    }
+  },
+  "statistics": {
+    "total_sensors": 4,
+    "enabled_sensors": 4,
+    "by_type": {
+      "DHT22": 1,
+      "Relay": 1,
+      "Current": 1,
+      "Exaustor": 1
+    },
+    "by_environment": {
+      "sala_quente": 4,
+      "sala_fria": 0
+    }
+  }
+}

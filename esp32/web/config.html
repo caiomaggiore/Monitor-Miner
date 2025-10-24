@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Miner - Configuração</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/base.css">
+    <link rel="stylesheet" href="./css/nav.css">
+    <link rel="stylesheet" href="./css/config.css">
+</head>
+<body class="config-page">
+    <div class="container">
+        <!-- Menu de Navegação -->
+        <nav class="nav-menu">
+            <div class="nav-content">
+                <div class="nav-brand">
+                    <div class="brand-content">
+                        <i class="fas fa-microchip"></i>
+                        <span>Monitor Miner</span>
+                    </div>
+                    <div class="nav-status">
+                        <i class="fas fa-circle"></i>
+                        <span>SISTEMA ONLINE</span>
+                    </div>
+                </div>
+                <div class="nav-right">
+                    <div class="nav-links" id="navLinks">
+                        <a href="/" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+                        <a href="/config" class="nav-link active"><i class="fas fa-cog"></i> Configuração</a>
+                    </div>
+                    <button class="hamburger" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Header -->
+        <div class="header">
+            <h1>⚙️ CONFIGURAÇÃO DE SENSORES</h1>
+            <p>ESP32-WROOM-32D 38pin - Adicione e configure sensores</p>
+        </div>
+
+        <!-- Formulário de Adição -->
+        <div class="add-item-section">
+            <h3><i class="fas fa-cog"></i> Configurar Novo Item</h3>
+            <div class="form-group">
+                <label for="itemType">Tipo:</label>
+                <select id="itemType" onchange="updateFormFields()">
+                    <option value="">Selecione o tipo...</option>
+                    <option value="DHT22">🌡️ DHT22</option>
+                    <option value="DHT11">🌡️ DHT11</option>
+                    <option value="Relay">⚡ Relé</option>
+                    <option value="Current">🔌 Corrente</option>
+                    <option value="Exaustor">🔄 Exaustor</option>
+                </select>
+            </div>
+            <div id="dynamicFields" style="display: none;">
+                <!-- Campos dinâmicos serão inseridos via JavaScript -->
+            </div>
+            <div class="form-actions">
+                <button onclick="saveItem()" class="btn btn-primary">💾 Salvar</button>
+                <button onclick="cancelAdd()" class="btn btn-secondary">❌ Cancelar</button>
+            </div>
+        </div>
+
+        <!-- Sensores Configurados -->
+        <div class="sensors-section">
+            <h3><i class="fas fa-folder"></i> Sensores Configurados</h3>
+            <div id="sensorsList">
+                <p>Nenhum sensor configurado</p>
+            </div>
+        </div>
+
+        <!-- Informações da Placa -->
+        <div class="board-info">
+            <h3><i class="fas fa-folder"></i> Informações da Placa</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">MODELO</span>
+                    <span class="info-value">ESP32-WROOM-32D</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">PINOS</span>
+                    <span class="info-value">38 pinos</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">GPIO</span>
+                    <span class="info-value">34 pinos</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">ADC</span>
+                    <span class="info-value">18 pinos</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações do Sistema -->
+        <div class="system-info">
+            <h3><i class="fas fa-cog"></i> Informações do Sistema</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">VERSÃO</span>
+                    <span class="info-value" id="systemVersion">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">PROCESSADOR</span>
+                    <span class="info-value" id="systemProcessor">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">ENDEREÇO IP</span>
+                    <span class="info-value" id="systemIp">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">UPTIME</span>
+                    <span class="info-value" id="systemUptime">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">CPU USAGE</span>
+                    <span class="info-value" id="systemCPU">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">RAM</span>
+                    <span class="info-value" id="systemRAM">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">FLASH</span>
+                    <span class="info-value" id="systemFlash">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Última Atualização -->
+    <div class="last-update">
+        <span id="lastUpdate">Última atualização: --</span>
+    </div>
+
+    <script src="./js/config.js"></script>
+</body>
+</html>

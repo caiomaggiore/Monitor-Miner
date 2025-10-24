@@ -1,0 +1,26 @@
+/* Menu de Navegação */
+.nav-menu{background:var(--bg-secondary);border-radius:15px;padding:20px;margin-bottom:25px;border-left:4px solid var(--accent-blue);box-shadow:0 10px 30px var(--shadow-color)}
+.nav-content{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:20px}
+.nav-brand{display:flex;align-items:center;gap:12px;font-weight:700;color:var(--text-primary);font-size:1.1em;flex-direction:column;align-items:flex-start}
+.nav-brand .brand-content{display:flex;align-items:center;gap:12px}
+.nav-brand i{color:var(--accent-blue);font-size:1.3em}
+.nav-brand .nav-status{margin-top:5px;font-size:10px;padding:4px 8px}
+.nav-right{display:flex;align-items:center;gap:20px}
+.nav-links{display:flex;gap:12px;flex-wrap:wrap}
+.nav-link{background:var(--bg-tertiary);color:var(--text-primary);text-decoration:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;transition:all 0.3s ease;border:1px solid var(--border-color);display:flex;align-items:center;gap:8px}
+.nav-link:hover{background:var(--accent-blue);color:white;text-decoration:none;transform:translateY(-2px);box-shadow:0 4px 15px rgba(59,130,246,0.2)}
+.nav-link.active{background:var(--accent-blue);color:white;border:1px solid var(--accent-blue-dark);box-shadow:0 4px 15px rgba(59,130,246,0.2)}
+.nav-status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);background:var(--bg-tertiary);padding:8px 12px;border-radius:20px;border:1px solid var(--border-color);max-width:150px;justify-content:center}
+.nav-status i{color:var(--success);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.hamburger{display:none;background:none;border:none;color:var(--text-primary);font-size:1.5em;cursor:pointer;padding:5px}
+.hamburger:hover{color:var(--accent-blue)}
+@media (max-width: 768px){
+  .nav-content{flex-direction:column;align-items:flex-start}
+  .nav-right{width:100%;justify-content:space-between;align-items:flex-start;position:relative}
+  .nav-links{display:none;flex-direction:column;width:100%;margin-top:15px;gap:8px}
+  .nav-links.active{display:flex}
+  .nav-link{justify-content:flex-start;border-radius:6px}
+  .hamburger{display:block;position:absolute;top:20px;right:20px;margin:0;z-index:10}
+  .nav-status{margin-top:10px;align-self:center}
+}
