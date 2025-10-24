@@ -1,12 +1,12 @@
 """
-Boot - Monitor Miner v3.0
+Boot - Monitor Miner v4.0
 MINIMALISTA: Apenas verifica configuração e direciona
 
 Fluxo:
 1. Desliga interfaces
 2. Verifica se WiFi está configurado
-3. Se SIM → Tenta conectar → main.py (STA + Async)
-4. Se NÃO ou FALHA → setup.py (AP + Sync)
+3. Se SIM → Tenta conectar → main.py (STA + v4.0)
+4. Se NÃO ou FALHA → main.py (AP + v4.0)
 """
 
 import network
@@ -38,7 +38,7 @@ def load_config():
 # ============================================================================
 
 print("[BOOT] ========================================")
-print("[BOOT] Monitor Miner v3.0 - Boot")
+print("[BOOT] Monitor Miner v4.0 - Boot")
 print("[BOOT] ========================================")
 
 # [1] Desligar tudo
@@ -153,10 +153,10 @@ else:
     print("[BOOT] WiFi: MonitorMiner_Setup")
     print("[BOOT] 🌐 http://192.168.4.1:8080")
     print("=" * 40)
-    print("[BOOT] ➡️  Carregando setup_wifi.py (Site Survey)")
+    print("[BOOT] ➡️  Carregando main.py v4.0 (Modo AP)")
     print("=" * 40)
     
     gc.collect()
     
-    # Importar setup_wifi.py (modo AP)
-    import setup_wifi
+    # Importar main.py v4.0 (modo AP)
+    import main

@@ -40,7 +40,7 @@ class MonitorMinerApp:
         
         print("[APP] 🚀 Inicializando Monitor Miner v4.0...")
     
-    def initialize(self):
+    def initialize(self, mode='STA'):
         """Inicializa a aplicação"""
         try:
             # Inicializar servidor HTTP
@@ -53,7 +53,7 @@ class MonitorMinerApp:
             # Inicializar watchdog
             self.wdt = WDT(timeout=15)
             
-            print("[APP] ✅ Aplicação inicializada")
+            print(f"[APP] ✅ Aplicação inicializada (modo: {mode})")
             return True
             
         except Exception as e:
@@ -133,9 +133,9 @@ class MonitorMinerApp:
         from core.response import cors_preflight_response
         return cors_preflight_response()
     
-    def start(self):
+    def start(self, mode='STA'):
         """Inicia a aplicação"""
-        if not self.initialize():
+        if not self.initialize(mode):
             return False
         
         # Iniciar servidor HTTP
@@ -144,7 +144,13 @@ class MonitorMinerApp:
         
         self.running = True
         print("[APP] 🚀 Aplicação iniciada!")
-        print(f"[APP] 🌐 http://192.168.1.100:8080")
+        
+        # Mostrar IP baseado no modo
+        if mode == 'AP':
+            print(f"[APP] 🌐 http://192.168.4.1:8080")
+        else:
+            print(f"[APP] 🌐 http://[IP_DO_ESP32]:8080")
+        
         print("=" * 50)
         
         # Loop principal
@@ -255,17 +261,38 @@ class MonitorMinerApp:
             'data_store_stats': data_store.get_cache_stats()
         }
 
+def detect_mode():
+    """Detecta se está em modo AP ou STA"""
+    import network
+    
+    # Verificar se AP está ativo
+    ap = network.WLAN(network.AP_IF)
+    if ap.active():
+        return 'AP'
+    
+    # Verificar se STA está conectado
+    sta = network.WLAN(network.STA_IF)
+    if sta.active() and sta.isconnected():
+        return 'STA'
+    
+    # Default para AP se não conseguir detectar
+    return 'AP'
+
 def main():
     """Função principal"""
     print("=" * 50)
     print("🔥 MONITOR MINER v4.0 - ARQUITETURA MODULAR")
     print("=" * 50)
     
+    # Detectar modo
+    mode = detect_mode()
+    print(f"[APP] Modo detectado: {mode}")
+    
     # Criar e iniciar aplicação
     app = MonitorMinerApp()
     
     try:
-        app.start()
+        app.start(mode)
     except KeyboardInterrupt:
         print("\n[APP] ⏹️ Interrompido pelo usuário")
     except Exception as e:
