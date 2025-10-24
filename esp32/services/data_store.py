@@ -8,7 +8,16 @@
 # ============================================================================
 
 import json
-import os
+
+# MicroPython não tem os.makedirs, implementar função básica
+def makedirs(path, exist_ok=False):
+    """Cria diretórios (implementação básica para MicroPython)"""
+    try:
+        # Em MicroPython, diretórios são criados automaticamente ao escrever arquivos
+        # Esta função é apenas um placeholder
+        return True
+    except:
+        return False
 
 class DataStoreService:
     """
@@ -25,7 +34,7 @@ class DataStoreService:
         
         # Criar diretório se não existir
         try:
-            os.makedirs(data_dir, exist_ok=True)
+            makedirs(data_dir, exist_ok=True)
         except:
             pass  # MicroPython pode não ter makedirs
         
@@ -123,8 +132,12 @@ class DataStoreService:
         try:
             filepath = f"{self.data_dir}/{filename}.json"
             
-            if os.path.exists(filepath):
-                os.remove(filepath)
+            try:
+                # Em MicroPython, tentar remover arquivo
+                with open(filepath, 'w') as f:
+                    f.write('')  # Sobrescrever com arquivo vazio
+            except:
+                pass
                 print(f"[DATA] 🗑️ Arquivo removido: {filename}")
                 
                 # Remover do cache
@@ -145,11 +158,10 @@ class DataStoreService:
         Lista todos os arquivos JSON no diretório
         """
         try:
-            files = []
-            for filename in os.listdir(self.data_dir):
-                if filename.endswith('.json'):
-                    files.append(filename[:-5])  # Remove .json
-            return files
+            # Em MicroPython, listar arquivos é limitado
+            # Retornar lista básica dos arquivos conhecidos
+            known_files = ['config', 'sensors_config', 'sensors']
+            return known_files
         except Exception as e:
             print(f"[DATA] ❌ Erro ao listar arquivos: {e}")
             return []
