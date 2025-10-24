@@ -95,14 +95,25 @@ class Router:
         Converte path com parâmetros para regex
         /api/sensors/{id} -> /api/sensors/([^/]+)
         """
-        # Escapar caracteres especiais
-        escaped = re.escape(path)
+        # Escapar caracteres especiais manualmente (MicroPython não tem re.escape)
+        escaped = self._escape_regex(path)
         
         # Substituir {param} por ([^/]+)
         regex = escaped.replace(r'\{([^}]+)\}', r'([^/]+)')
         
         # Adicionar âncoras de início e fim
         return f"^{regex}$"
+    
+    def _escape_regex(self, text):
+        """Escapa caracteres especiais para regex (implementação para MicroPython)"""
+        # Caracteres que precisam ser escapados em regex
+        special_chars = r'\.^$*+?{}[]|()'
+        escaped = text
+        
+        for char in special_chars:
+            escaped = escaped.replace(char, '\\' + char)
+        
+        return escaped
     
     def _extract_params(self, path):
         """Extrai nomes dos parâmetros do path"""
