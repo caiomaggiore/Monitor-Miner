@@ -84,9 +84,10 @@ echo 📁 Uploading JavaScript...
 mpremote connect %COM_PORT% cp esp32/web/js/core/components.js :web/js/core/
 mpremote connect %COM_PORT% cp esp32/web/js/core/dashboard.js :web/js/core/
 
-REM Upload test file
-echo 📁 Uploading test file...
+REM Upload test files
+echo 📁 Uploading test files...
 mpremote connect %COM_PORT% cp esp32/test_dependencies.py :
+mpremote connect %COM_PORT% cp esp32/quick_test.py :
 
 echo.
 echo ✅ Upload completo da arquitetura v4.0!
